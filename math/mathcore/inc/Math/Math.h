@@ -77,21 +77,21 @@ namespace ROOT {
       /// log(1+x) with error cancelatio when x is small
       inline double log1p(double x)
       {
-      #ifndef HAVE_NO_LOG1P
+#ifndef HAVE_NO_LOG1P
          return ::log1p(x);
-      #else
+#else
          // if log1p is not in c math library
          volatile double y;
          y = 1 + x;
          return std::log(y) - ((y - 1) - x) / y ; /* cancels errors with IEEE arithmetic */
-      #endif
+#endif
       }
       /// exp(x) -1 with error cancellation when x is small
       inline double expm1(double x)
       {
-      #ifndef HAVE_NO_EXPM1
+#ifndef HAVE_NO_EXPM1
          return ::expm1(x);
-      #else
+#else
          // compute using taylor expansion until difference is less than epsilon
          // use for values smaller than 0.5 (for larger (exp(x)-1 is fine
          if (std::abs(x) < 0.5) {
@@ -110,7 +110,7 @@ namespace ROOT {
          } else {
             return std::exp(x) - 1;
          }
-      #endif
+#endif
       }
 
    } // end namespace Math
