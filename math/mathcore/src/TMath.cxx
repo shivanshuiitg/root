@@ -438,9 +438,9 @@ Double_t TMath::GamSer(Double_t a,Double_t x)
 ////////////////////////////////////////////////////////////////////////////////
 /// Calculate a Breit Wigner function with mean and gamma.
 
-Double_t TMath::BreitWigner(Double_t x, Double_t mean, Double_t gamma)
+Double_v TMath::BreitWigner(Double_v x, Double_v mean,Double_v gamma)
 {
-   Double_t bw = gamma/((x-mean)*(x-mean) + gamma*gamma/4);
+   Double_v bw = gamma/((x-mean)*(x-mean) + gamma*gamma/4);
    return bw/(2*Pi());
 }
 
@@ -449,15 +449,21 @@ Double_t TMath::BreitWigner(Double_t x, Double_t mean, Double_t gamma)
 /// If norm=kTRUE (default is kFALSE) the result is divided
 /// by sqrt(2*Pi)*sigma.
 
-Double_t TMath::Gaus(Double_t x, Double_t mean, Double_t sigma, Bool_t norm)
+template<typename Double_v>
+Double_v TMath::Gaus(Double_v x, Double_v mean, Double_v sigma, Bool_t norm)
 {
-   if (sigma == 0) return 1.e30;
-   Double_t arg = (x-mean)/sigma;
-   // for |arg| > 39  result is zero in double precision
-   if (arg < -39.0 || arg > 39.0) return 0.0;
-   Double_t res = TMath::Exp(-0.5*arg*arg);
-   if (!norm) return res;
-   return res/(2.50662827463100024*sigma); //sqrt(2*Pi)=2.50662827463100024
+   Double_v res;
+   Mask<Double_v> mask1 = (sigma==Double_v(0.0));  // Mask for checking condtition if(sigma==0)
+   MaskedAssign(res, mask1, Double_v(1.e30));
+   if(MaskFull(mask1)) return res;
+   Double_v arg = (x-mean)/sigma;
+   Mask<Double_v> mask2 = (arg < Double_v(-39.0) || arg > Double_v(39.0)); 
+   MaskedAssign(res, mask2, Double_v(0.0));
+   if(MaskFull(mask2)) return res;
+   res = TMath::Exp(-0.5*arg*arg);
+   Double_v res1 = res/(2.50662827463100024*sigma);
+   Mask<Double_v> mask3 = (norm==false);  // Mask for checking condition if(!norm)
+   return Blend(mask3, res, res1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -486,7 +492,7 @@ Double_t TMath::Landau(Double_t x, Double_t mu, Double_t sigma, Bool_t norm)
 ///
 ///--- Nve 14-nov-1998 UU-SAP Utrecht
 
-Double_t TMath::LnGamma(Double_t z)
+Double_v TMath::LnGamma(Double_v z)
 {
    return ::ROOT::Math::lgamma(z);
 }
@@ -1390,25 +1396,25 @@ ULong_t TMath::Hash(const char *txt)
 ///
 ///--- NvE 12-mar-2000 UU-SAP Utrecht
 
-Double_t TMath::BesselI0(Double_t x)
+Double_v TMath::BesselI0(Double_v x)
 {
    // Parameters of the polynomial approximation
-   const Double_t p1=1.0,          p2=3.5156229,    p3=3.0899424,
+   const Double_v p1=1.0,          p2=3.5156229,    p3=3.0899424,
                   p4=1.2067492,    p5=0.2659732,    p6=3.60768e-2,  p7=4.5813e-3;
 
-   const Double_t q1= 0.39894228,  q2= 1.328592e-2, q3= 2.25319e-3,
+   const Double_v q1= 0.39894228,  q2= 1.328592e-2, q3= 2.25319e-3,
                   q4=-1.57565e-3,  q5= 9.16281e-3,  q6=-2.057706e-2,
                   q7= 2.635537e-2, q8=-1.647633e-2, q9= 3.92377e-3;
 
-   const Double_t k1 = 3.75;
-   Double_t ax = TMath::Abs(x);
+   const Double_v k1 = 3.75;
+   Double_v ax = TMath::Abs(x);
 
-   Double_t y=0, result=0;
-
-   if (ax < k1) {
+   Double_v y=0, result=0;
+   Mask<Double_v> mask1 = (ax < k1);
+   if (MaskFull(mask1)) {
       Double_t xx = x/k1;
       y = xx*xx;
-      result = p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7)))));
+      result = p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7)))));      
    } else {
       y = k1/ax;
       result = (TMath::Exp(ax)/TMath::Sqrt(ax))*(q1+y*(q2+y*(q3+y*(q4+y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))));
@@ -1974,7 +1980,7 @@ Double_t TMath::StruveL1(Double_t x)
 ////////////////////////////////////////////////////////////////////////////////
 /// Calculates Beta-function Gamma(p)*Gamma(q)/Gamma(p+q).
 
-Double_t TMath::Beta(Double_t p, Double_t q)
+Double_v TMath::Beta(Double_v p, Double_v q)
 {
    return ::ROOT::Math::beta(p, q);
 }
